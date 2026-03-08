@@ -56,7 +56,6 @@ jobs:
                        model=${{ matrix.model }} \
                        name="Cruel-KSU"          \
                        toolchain=$TOOLCHAIN      \
-                       +ksu                      \
                        +magisk                   \
                        +nohardening              \
                        +ttl                      \
