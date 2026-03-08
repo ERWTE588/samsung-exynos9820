@@ -37,7 +37,7 @@ jobs:
                        model=${{ matrix.model }} \
                        name="Cruel-Switchable"   \
                        toolchain=$TOOLCHAIN      \
-                       always_enforce            \
+                       +always_enforce            \
                        -magisk                   \
                        -nohardening              \
                        +ttl                      \
