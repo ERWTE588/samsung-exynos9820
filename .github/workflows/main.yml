@@ -9,7 +9,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     strategy:
       fail-fast: false
       matrix:
@@ -24,35 +23,20 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install -y -qq libtinfo5 ccache
 
-      - name: Disable compression in ccache
-        run: ccache -o compression=false -o cache_dir=$HOME/.ccache
-
-      - name: Prepare ccache timestamp
-        id: ccache_timestamp
+      - name: Prepare ccache
         run: |
+          ccache -o compression=false -o cache_dir=$HOME/.ccache
           echo "FULL_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
           echo "MONTH_DATE=$(date +'%Y-%m')" >> $GITHUB_OUTPUT
-
-      - name: Create cache key
-        id: ccache_model_key
-        run: echo "KEY=$( echo ${{ matrix.model }} | tr ',' '_' )" >> $GITHUB_OUTPUT
-
-      - name: Cache ccache files
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ env.TOOLCHAIN }}-${{ steps.ccache_model_key.outputs.KEY }}-${{ steps.ccache_timestamp.outputs.FULL_DATE }}
-          restore-keys: |
-            ccache-${{ env.TOOLCHAIN }}-${{ steps.ccache_model_key.outputs.KEY }}-${{ steps.ccache_timestamp.outputs.MONTH_DATE }}
+        id: ccache_setup
 
       - name: Kernel Configure
         run: |
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="Cruel-Mod"          \
+                       name="Cruel-Final"        \
                        toolchain=$TOOLCHAIN      \
-                       -update_magisk            \
                        +magisk                   \
                        +nohardening              \
                        +ttl                      \
@@ -64,7 +48,10 @@ jobs:
         run: git clone --depth 1 -j $(nproc) --branch $TOOLCHAIN --single-branch https://github.com/CruelKernel/samsung-exynos9820-toolchain toolchain
 
       - name: Kernel Build
-        run: ./cruelbuild :build
+        run: |
+          # Manually disable the failing magisk update script
+          sed -i 's/run_magisk_update/echo skipping magisk update/g' cruelbuild || true
+          ./cruelbuild :build
 
       - name: Install mkbootimg tools
         run: |
@@ -78,13 +65,8 @@ jobs:
           ./cruelbuild :mkimg
           ./cruelbuild :pack
 
-      - name: Prepare Artifacts
-        run: |
-          mkdir -p installer && cd installer
-          unzip ../CruelKernel.zip
-
-      - name: Upload Flashable Kernel
+      - name: Upload Final Kernel
         uses: actions/upload-artifact@v4
         with:
-          name: CruelKernel-G977N-Final
-          path: installer/*
+          name: CruelKernel-G977N-Success
+          path: CruelKernel.zip
