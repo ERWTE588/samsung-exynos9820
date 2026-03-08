@@ -35,13 +35,13 @@ jobs:
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="Cruel-Stable"       \
+                       name="Cruel-Switchable"   \
                        toolchain=$TOOLCHAIN      \
+                       always_enforce            \
                        -magisk                   \
-                       +nohardening              \
+                       -nohardening              \
                        +ttl                      \
                        +wireguard                \
-                       +force_dex_wqhd           \
           2>&1 | tee config.info
 
       - name: Deploy Toolchain
