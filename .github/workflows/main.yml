@@ -35,9 +35,9 @@ jobs:
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="Cruel-Final"        \
+                       name="Cruel-Stable"       \
                        toolchain=$TOOLCHAIN      \
-                       +magisk                   \
+                       -magisk                   \
                        +nohardening              \
                        +ttl                      \
                        +wireguard                \
@@ -48,16 +48,7 @@ jobs:
         run: git clone --depth 1 -j $(nproc) --branch $TOOLCHAIN --single-branch https://github.com/CruelKernel/samsung-exynos9820-toolchain toolchain
 
       - name: Kernel Build
-        run: |
-          # This 'fakes' the magisk update script so it always reports success
-          mkdir -p usr/magisk
-          echo "#!/bin/bash" > usr/magisk/update_magisk.sh
-          echo "exit 0" >> usr/magisk/update_magisk.sh
-          chmod +x usr/magisk/update_magisk.sh
-          
-          # Now run the build
-          ./cruelbuild :build
-
+        run: ./cruelbuild :build
 
       - name: Install mkbootimg tools
         run: |
@@ -74,5 +65,5 @@ jobs:
       - name: Upload Final Kernel
         uses: actions/upload-artifact@v4
         with:
-          name: CruelKernel-G977N-Success
+          name: CruelKernel-G977N-Final
           path: CruelKernel.zip
