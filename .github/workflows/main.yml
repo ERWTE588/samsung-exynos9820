@@ -35,15 +35,15 @@ jobs:
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="Cruel-Switchable"   \
+                       name="Cruel-Stable"       \
                        toolchain=$TOOLCHAIN      \
-                       +always_enforce            \
+                       +always_enforce           \
                        -magisk                   \
-                       -nohardening              \
+                       +nohardening              \
                        +ttl                      \
                        +wireguard                \
+                       +force_dex_wqhd           \
           2>&1 | tee config.info
-
       - name: Deploy Toolchain
         run: git clone --depth 1 -j $(nproc) --branch $TOOLCHAIN --single-branch https://github.com/CruelKernel/samsung-exynos9820-toolchain toolchain
 
@@ -56,12 +56,10 @@ jobs:
           chmod +x mkbootimg.py
           sudo mv mkbootimg.py /usr/local/bin/mkbootimg
           sudo mv gki $(python -c 'import site; print(site.getsitepackages()[0])')
-
       - name: Create Installer
         run: |
           ./cruelbuild :mkimg
           ./cruelbuild :pack
-
       - name: Upload Final Kernel
         uses: actions/upload-artifact@v4
         with:
